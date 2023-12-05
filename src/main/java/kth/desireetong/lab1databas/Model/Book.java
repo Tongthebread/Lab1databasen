@@ -50,6 +50,9 @@ public class Book implements Comparable<Book>{
     public ArrayList<Author> getAuthors() {
         return new ArrayList<>(authors);
     }
+    public void setAuthors(Author authors) {
+        this.authors.add(authors);
+    }
 
     public void setRating(int rating) {
         this.rating = rating;

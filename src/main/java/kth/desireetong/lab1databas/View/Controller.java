@@ -1,8 +1,7 @@
 package kth.desireetong.lab1databas.View;
 
-import kth.desireetong.lab1databas.Model.Book;
-import kth.desireetong.lab1databas.Model.BooksDbInterface;
-import kth.desireetong.lab1databas.Model.SearchMode;
+import kth.desireetong.lab1databas.Model.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import static javafx.scene.control.Alert.AlertType.*;
@@ -56,5 +55,15 @@ public class Controller {
     }
 
     // TODO:
-    // Add methods for all types of user interaction (e.g. via  menus).
+    public void addBookWithAuthors(Book book, List<Author> authors) {
+        try {
+            booksDb.addBook(book); // Lägger till boken i databasen
+            for (Author author : authors) {
+                booksDb.addAuthor(author); // Lägger till varje författare i databasen
+            }
+        } catch (BooksDbException e) {
+            booksView.showAlertAndWait("Error adding book or author to the database: " + e.getMessage(), ERROR);
+        }
+    }
+
 }
