@@ -27,8 +27,8 @@ public interface BooksDbInterface {
     
     public void disconnect() throws BooksDbException;
 
-    
-    // TODO: Add abstract methods for all inserts, deletes and queries 
+
+    // TODO: Add abstract methods for all inserts, deletes and queries
     // mentioned in the instructions for the assignement.
 
     void addBook(Book book) throws BooksDbException;

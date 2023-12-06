@@ -1,7 +1,9 @@
 package kth.desireetong.lab1databas.View;
 
-import kth.desireetong.lab1databas.Model.*;
-
+import kth.desireetong.lab1databas.Model.Author;
+import kth.desireetong.lab1databas.Model.Book;
+import kth.desireetong.lab1databas.Model.BooksDbInterface;
+import kth.desireetong.lab1databas.Model.SearchMode;
 import java.util.ArrayList;
 import java.util.List;
 import static javafx.scene.control.Alert.AlertType.*;
@@ -14,8 +16,8 @@ import static javafx.scene.control.Alert.AlertType.*;
  */
 public class Controller {
 
-    private final BooksPane booksView; // view
-    private final BooksDbInterface booksDb; // model
+    private static BooksPane booksView; // view
+    private static BooksDbInterface booksDb; // model
 
     public Controller(BooksDbInterface booksDb, BooksPane booksView) {
         this.booksDb = booksDb;
@@ -55,15 +57,35 @@ public class Controller {
     }
 
     // TODO:
-    public void addBookWithAuthors(Book book, List<Author> authors) {
+    // Add methods for all types of user interaction (e.g. via  menus).
+    public static void addBook(Book book) {
         try {
-            booksDb.addBook(book); // Lägger till boken i databasen
-            for (Author author : authors) {
-                booksDb.addAuthor(author); // Lägger till varje författare i databasen
-            }
-        } catch (BooksDbException e) {
-            booksView.showAlertAndWait("Error adding book or author to the database: " + e.getMessage(), ERROR);
+            booksDb.addBook(book);
+            booksView.showAlertAndWait("Book added successfully.", INFORMATION);
+            // Refresh the view if necessary
+        } catch (Exception e) {
+            booksView.showAlertAndWait("Error adding book to database.", ERROR);
         }
     }
+    public static void removeBook(int bookID) {
+        try {
+            booksDb.deleteBook(bookID);
+            booksView.showAlertAndWait("Book removed successfully.", INFORMATION);
+            // Refresh the view if necessary
+        } catch (Exception e) {
+            booksView.showAlertAndWait("Error removing book from database.", ERROR);
+        }
+    }
+    public static void addAuthor(Author author) {
+        try {
+            booksDb.addAuthor(author);
+            booksView.showAlertAndWait("Author added successfully.", INFORMATION);
+            // Refresh the view if necessary
+        } catch (Exception e) {
+            booksView.showAlertAndWait("Error adding author to database.", ERROR);
+        }
+    }
+    
+
 
 }

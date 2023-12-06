@@ -1,15 +1,16 @@
 package kth.desireetong.lab1databas.Model;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Author implements Comparable<Author> {
     private int authorID;
     private String firstName;
     private String lastName;
-    private String birthDate;
+    private Date birthDate;
     private ArrayList<Book> books;
 
-    public Author(int authorID, String firstName, String lastName, String birthDate) {
+    public Author(int authorID, String firstName, String lastName, Date birthDate) {
         this.authorID = authorID;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -46,7 +47,7 @@ public class Author implements Comparable<Author> {
         return lastName;
     }
 
-    public String getBirthDate() {
+    public Date getBirthDate() {
         return birthDate;
     }
 

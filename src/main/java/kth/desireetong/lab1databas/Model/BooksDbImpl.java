@@ -146,13 +146,25 @@ public class BooksDbImpl implements BooksDbInterface {
             pstmt.setInt(1, author.getAuthorID());
             pstmt.setString(2, author.getFirstName());
             pstmt.setString(3, author.getLastName());
-            pstmt.setDate(4, Date.valueOf(author.getBirthDate()));
+            pstmt.setDate(4, Date.valueOf(String.valueOf(author.getBirthDate())));
 
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new BooksDbException("Error adding author to database", e);
         }
     }
+    public void addAuthorToBook(Author author, Book book) throws BooksDbException {
+        String sql = "INSERT INTO AuthorOfBook (authorID, bookID) VALUES (?, ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, author.getAuthorID());
+            pstmt.setInt(2, book.getBookId());
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new BooksDbException("Error linking author to book in database", e);
+        }
+    }
+
 
     @Override
     public void deleteBook(int bookID) throws BooksDbException {

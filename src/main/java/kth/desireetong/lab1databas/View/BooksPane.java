@@ -27,7 +27,6 @@ public class BooksPane extends VBox {
     private TableView<Book> booksTable;
     private ObservableList<Book> booksInTable; // the data backing the table view
     private ObservableList<Author> authors;
-
     private ComboBox<SearchMode> searchModeBox;
     private TextField searchField;
     private Button searchButton;
@@ -50,10 +49,10 @@ public class BooksPane extends VBox {
         booksInTable.clear();
         booksInTable.addAll(books);
     }
-    
+
     /**
      * Notify user on input error or exceptions.
-     * 
+     *
      * @param msg the message
      * @param type types: INFORMATION, WARNING et c.
      */
@@ -107,7 +106,7 @@ public class BooksPane extends VBox {
         titleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
         isbnCol.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         publishedCol.setCellValueFactory(new PropertyValueFactory<>("published"));
-        
+
         // associate the table view with the data
         booksTable.setItems(booksInTable);
     }
@@ -119,7 +118,7 @@ public class BooksPane extends VBox {
         searchModeBox.getItems().addAll(SearchMode.values());
         searchModeBox.setValue(SearchMode.Title);
         searchButton = new Button("Search");
-        
+
         // event handling (dispatch to controller)
         searchButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -139,21 +138,16 @@ public class BooksPane extends VBox {
         MenuItem disconnectItem = new MenuItem("Disconnect");
         fileMenu.getItems().addAll(exitItem, connectItem, disconnectItem);
 
-        Menu searchMenu = new Menu("Search");
-        MenuItem titleItem = new MenuItem("Title");
-        MenuItem isbnItem = new MenuItem("ISBN");
-        MenuItem authorItem = new MenuItem("Author");
-        searchMenu.getItems().addAll(titleItem, isbnItem, authorItem);
-
         Menu manageMenu = new Menu("Manage");
         MenuItem addItem = new MenuItem("Add");
         addItem.setOnAction(e -> showAddBookDialog());
         MenuItem removeItem = new MenuItem("Remove");
+        removeItem.setOnAction(e -> showRemoveBookDialog());
         MenuItem updateItem = new MenuItem("Update");
         manageMenu.getItems().addAll(addItem, removeItem, updateItem);
 
         menuBar = new MenuBar();
-        menuBar.getMenus().addAll(fileMenu, searchMenu, manageMenu);
+        menuBar.getMenus().addAll(fileMenu, manageMenu);
     }
 
     private void showAddBookDialog() {
@@ -166,11 +160,25 @@ public class BooksPane extends VBox {
         ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
+        ObservableList<Author> authorObservableList = FXCollections.observableArrayList();
+        ListView<Author> authorListView = new ListView<>(authorObservableList);
+        Button addAuthorButton = new Button("Add Author");
+
+        addAuthorButton.setOnAction(e -> {
+            Author newAuthor = showAuthorDialog();
+            if (newAuthor != null) {
+                authorObservableList.add(newAuthor);
+            }
+        });
+
         // Skapa fält för att samla in bokinformation
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
+        grid.add(new Label("Author:"), 0, 6);
+        grid.add(authorListView, 1, 6);
+        grid.add(addAuthorButton, 2, 6);
 
         TextField bookIDField = new TextField();
         bookIDField.setPromptText("Book ID");
@@ -184,17 +192,6 @@ public class BooksPane extends VBox {
         TextField genreField = new TextField();
         genreField.setPromptText("Genre");
 
-        ListView<Author> authorListView = new ListView<>();
-        authorListView.setItems(authors);
-
-        Button addAuthorButton = new Button("Add Author");
-        addAuthorButton.setOnAction(e -> {
-            Author newAuthor = showAddAuthorDialog();
-            if (newAuthor != null) {
-                authors.add(newAuthor);
-            }
-        });
-
         grid.add(new Label("Book ID:"), 0, 0);
         grid.add(bookIDField, 1, 0);
         grid.add(new Label("ISBN:"), 0, 1);
@@ -207,9 +204,6 @@ public class BooksPane extends VBox {
         grid.add(ratingField, 1, 4);
         grid.add(new Label("Genre:"), 0, 5);
         grid.add(genreField, 1, 5);
-        grid.add(new Label("Author:"), 0, 6);
-        grid.add(authorListView, 1, 6);
-        grid.add(addAuthorButton, 2, 6);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -224,13 +218,15 @@ public class BooksPane extends VBox {
                     Date published = Date.valueOf(publishedLocalDate); // Konvertera LocalDate till java.sql.Date
                     int rating = Integer.parseInt(ratingField.getText());
                     Genre genre = Genre.valueOf(genreField.getText());
+                    // Hantera genre och author enligt ditt schema
+                    // ...
 
+                    // Skapa och returnera ett Book-objekt
                     Book newBook = new Book(bookId, isbn, title, published, rating, genre);
-                    for(Author author : authors){
+                    for (Author author : authorObservableList) {
                         newBook.setAuthors(author);
                     }
                     return newBook;
-
                 } catch (Exception e) {
                     showAlertAndWait("Invalid input: " + e.getMessage(), Alert.AlertType.ERROR);
                     return null;
@@ -240,25 +236,24 @@ public class BooksPane extends VBox {
         });
 
         Optional<Book> result = dialog.showAndWait();
+
         result.ifPresent(book -> {
             // Hantera det nya Book-objektet här
-            List<Author> authors = authorListView.getItems();
             // Exempel: Lägg till i din ObservableList eller databas
+            Controller.addBook(book);
             booksInTable.add(book);
         });
     }
-
-    private Author showAddAuthorDialog() {
-        // Skapa en dialog för att lägga till en ny författare
+    private Author showAuthorDialog() {
         Dialog<Author> dialog = new Dialog<>();
         dialog.setTitle("Add New Author");
         dialog.setHeaderText("Enter Author Details");
 
-        // Lägger till knappar
+        // Add buttons
         ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
-        // Skapa fält för att samla in författarinformation
+        // Create fields to collect author information
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -270,8 +265,8 @@ public class BooksPane extends VBox {
         firstNameField.setPromptText("First Name");
         TextField lastNameField = new TextField();
         lastNameField.setPromptText("Last Name");
-        TextField birthDateField = new TextField();
-        birthDateField.setPromptText("Birth Date (YYYY-MM-DD)");
+        DatePicker birthDatePicker = new DatePicker();
+        birthDatePicker.setPromptText("Birth Date");
 
         grid.add(new Label("Author ID:"), 0, 0);
         grid.add(authorIdField, 1, 0);
@@ -280,20 +275,23 @@ public class BooksPane extends VBox {
         grid.add(new Label("Last Name:"), 0, 2);
         grid.add(lastNameField, 1, 2);
         grid.add(new Label("Birth Date:"), 0, 3);
-        grid.add(birthDateField, 1, 3);
+        grid.add(birthDatePicker, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
 
-        // Konvertera resultaten när "Save"-knappen trycks
+        // Convert results when the "Save" button is pressed
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == saveButtonType) {
                 try {
                     int authorId = Integer.parseInt(authorIdField.getText());
                     String firstName = firstNameField.getText();
                     String lastName = lastNameField.getText();
-                    String birthDate = birthDateField.getText(); // Använd String för födelsedatum
+                    LocalDate birthDate = birthDatePicker.getValue();
+                    Date birthSqlDate = Date.valueOf(birthDate); // Convert LocalDate to java.sql.Date
 
-                    return new Author(authorId, firstName, lastName, birthDate);
+                    Author newAuthor = new Author(authorId, firstName, lastName, birthSqlDate);
+                    Controller.addAuthor(newAuthor);
+                    return newAuthor;
                 } catch (Exception e) {
                     showAlertAndWait("Invalid input: " + e.getMessage(), Alert.AlertType.ERROR);
                     return null;
@@ -305,6 +303,53 @@ public class BooksPane extends VBox {
         Optional<Author> result = dialog.showAndWait();
         return result.orElse(null);
     }
+    private void showRemoveBookDialog() {
+        Dialog<Integer> dialog = new Dialog<>();
+        dialog.setTitle("Remove Book");
+        dialog.setHeaderText("Enter the Book ID of the book to remove");
+
+        // Add standard buttons to the dialog
+        ButtonType removeButtonType = new ButtonType("Remove", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(removeButtonType, ButtonType.CANCEL);
+
+        // Create a field to input the Book ID
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField bookIDField = new TextField();
+        bookIDField.setPromptText("Book ID");
+
+        grid.add(new Label("Book ID:"), 0, 0);
+        grid.add(bookIDField, 1, 0);
+        dialog.getDialogPane().setContent(grid);
+
+        // Convert the result when the "Remove" button is pressed
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == removeButtonType) {
+                try {
+                    return Integer.parseInt(bookIDField.getText());
+                } catch (NumberFormatException e) {
+                    showAlertAndWait("Invalid Book ID format. Please enter a numeric value.", Alert.AlertType.ERROR);
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        Optional<Integer> result = dialog.showAndWait();
+
+        result.ifPresent(bookID -> {
+            // Handle the book removal here
+            boolean removed = booksInTable.removeIf(book -> book.getBookId() == bookID);
+            if (!removed) {
+                showAlertAndWait("No book found with Book ID: " + bookID, Alert.AlertType.INFORMATION);
+            }
+            Controller.removeBook(bookID);
+        });
+    }
+
 
 
 }
